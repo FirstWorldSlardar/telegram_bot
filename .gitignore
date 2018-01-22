@@ -1,4 +1,5 @@
 secret.key
+sqlite.db
 
 # For python files
 __pycache__/
