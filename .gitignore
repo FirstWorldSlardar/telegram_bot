@@ -1,0 +1,5 @@
+secret.key
+
+# For python files
+__pycache__/
+*.py[cod]
