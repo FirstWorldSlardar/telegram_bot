@@ -6,7 +6,10 @@ def connect_db(func):
 		conn = sqlite3.connect('sqlite.db')
 		cursor = conn.cursor()
 		cursor.execute('''
-			CREATE TABLE IF NOT EXISTS rdvs (id_chat int PRIMARY KEY, id_message int, txt text)
+			CREATE TABLE IF NOT EXISTS rdvs (id_chat int PRIMARY KEY, id_message int, txt text);
+		''')
+		cursor.execute('''
+			CREATE TABLE IF NOT EXISTS cryptos (id_chat, type text, currency text, value real);
 		''')
 		conn.commit()
 		kwargs['conn'] = conn

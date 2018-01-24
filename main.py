@@ -36,9 +36,9 @@ def alea(bot, update, args):
 	bot.send_message(chat_id=update.message.chat_id, text=randint(1,int(args[0])))
 
 def rdv(bot, update, args):
-	txt = u"@{0} : {1}\n -> ".format(update.message.from_user.username, ' '.join(args))
+	txt = "{0} : _{1}pers._ \n@{2}".format(' '.join(args), "1", update.message.from_user.username)
 	# on crée un nouveau message
-	result_msg = bot.send_message(chat_id=update.message.chat_id, text=txt)
+	result_msg = bot.send_message(chat_id=update.message.chat_id, text=txt, parse_mode="Markdown")
 	# on récupère son id
 	id_message = result_msg.message_id
 	# on enregistre cet id dans la db
@@ -47,6 +47,53 @@ def rdv(bot, update, args):
 	bot.deleteMessage(chat_id=update.message.chat_id, message_id=update.message.message_id)
 	# on pin le message que l'on vient créer
 	bot.pinChatMessage(chat_id=update.message.chat_id, message_id=id_message, disable_notification=True)
+
+
+def setUp(bot, update, args):
+	if len(args)<2:
+		return None
+	currency_name, limit = args[0], float(args[1])
+	exec_sql('INSERT INTO cryptos VALUES(%d, "%s", "%s", %d)' %(update.message.chat_id, "up", currency_name, limit))
+	bot.send_message(
+		chat_id=update.message.chat_id, 
+		text="""
+		Quand la valeur du %s dépassera %d, vous en serez averti.
+		""" 
+		% (currency_name, limit) 
+	)
+
+
+def setDown(bot, update, args):
+	if len(args)<2:
+		return None
+	currency_name, limit = args[0], float(args[1])
+	exec_sql(
+		'INSERT INTO cryptos VALUES(%d, "%s", "%s", %d)'
+		% (update.message.chat_id, "down", currency_name, limit)
+	)
+	bot.send_message(
+		chat_id=update.message.chat_id, 
+		text="""
+		Quand la valeur du %s tombera sous %d, vous en serez averti.
+		""" 
+		% (currency_name, limit) 
+	)
+
+def clearLimits(bot, update, args=None):
+	if args:
+		# Delete the one crypto specified
+		currency_name = args[0]
+		exec_sql(
+			'DELETE FROM cryptos WHERE id_chat=%d AND currency=%s' 
+			% (update.message.chat_id, currency_name)
+		)
+	else:
+		# Delete all crypto being watched
+		exec_sql('DELETE FROM cryptos WHERE id_chat=%d' % (update.message.chat_id,))
+		bot.send_message(
+			chat_id=update.message.chat_id,
+			text="Toutes vos limites ont été supprimées."
+		)
 
 def delete_pin_msg(bot, update):
 	bot.deleteMessage(chat_id=update.message.chat_id, message_id=update.message.message_id)
@@ -69,15 +116,25 @@ def plus_un(bot, update):
 		message_id = get_from_sql(requete)[0][0]
 		txt = get_from_sql(requete)[0][1]
 		# on édite le message
-		txt = get_from_sql(requete)[0][1] +  u"@{}/".format(update.message.from_user.username)
-		bot.editMessageText(chat_id=chat_id, message_id=message_id, text=txt)
+		splitted_text = txt.split('\n')
+		n_pers = len(splitted_text)-1
+
+		n_txt = ":".join(splitted_text[0].split(':')[:-1]).strip(' ') +" : _%dpers._ " % (n_pers,) 
+		# First ligne, we make sure entering à ":" isn't a problem
+		# and that the format defined precedently is respected
+		for username in splitted_text[1:]:
+			n_txt += '\n' + username 
+
+		n_txt += '\n@'+update.message.from_user.username
+		bot.editMessageText(chat_id=chat_id, message_id=message_id, text=n_txt, parse_mode="Markdown")
+		# on parse en Markdown pour pouvoir ajouter des italiques par exemple
 		# on actualise la db avec le txt édité
 		requete = '''
 			UPDATE 	rdvs
-			SET 	txt = \"%s\"
+			SET 	txt = "%s"
 			WHERE	id_chat = %d
 			AND 	id_message = %d
-		''' % (txt,chat_id,message_id)
+		''' % (n_txt,chat_id,message_id)
 		exec_sql(requete)
 ###
 
@@ -148,15 +205,26 @@ def main():
 	secret_key = f_key.readline().strip(' ')
 	updater = Updater(token=secret_key)
 
-	# Get the dispatcher to register handlers
-	dispatcher = updater.dispatcher
+	# periodically check the cryptos
+	from cryptos import check_cryptos
+	jobQueue = updater.job_queue
+	job_check_cryptos = jobQueue.run_repeating(
+		check_cryptos,
+		interval=10,
+		first=0
+	)
 
+
+	dispatcher = updater.dispatcher
 	# on different commands - answer in Telegram
 	dispatcher.add_handler(CommandHandler("hello", hello))
 	dispatcher.add_handler(CommandHandler("start", start))
 	dispatcher.add_handler(CommandHandler("rdv", rdv, pass_args=True))
 	dispatcher.add_handler(CommandHandler("unpin", unpin))
 	dispatcher.add_handler(CommandHandler("alea", alea, pass_args=True))
+	dispatcher.add_handler(CommandHandler("setUp", setUp, pass_args=True))
+	dispatcher.add_handler(CommandHandler("setDown", setDown, pass_args=True))
+	dispatcher.add_handler(CommandHandler("clearLimits", clearLimits, pass_args=True))
 	dispatcher.add_handler(MessageHandler(Filters.text, plus_un))
 
 	# Ne fonctionne pas car le bot ne listen pas ses propres messages envoyés...
@@ -164,7 +232,7 @@ def main():
 	
 	# on noncommand i.e message - echo the message on Telegram
 	# dispatcher.add_handler(MessageHandler(Filters.text, echo))
-	dispatcher.add_handler(MessageHandler(Filters.voice, voice))
+	# dispatcher.add_handler(MessageHandler(Filters.voice, voice))
 
 	# dispatcher.add_handler(InlineQueryHandler(inlinequery))
 
