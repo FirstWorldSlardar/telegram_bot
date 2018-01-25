@@ -1,4 +1,7 @@
 import urllib3
+urllib3.disable_warnings() 
+# we just request the coinmarket API, so sensible
+# data exchanged here
 import json
 from db_functions import get_from_sql, exec_sql
 
