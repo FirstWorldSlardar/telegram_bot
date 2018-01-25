@@ -42,7 +42,7 @@ def rdv(bot, update, args):
 	# on récupère son id
 	id_message = result_msg.message_id
 	# on enregistre cet id dans la db
-	exec_sql("INSERT OR REPLACE INTO rdvs VALUES (%d, %d, \"%s\")" % (update.message.chat_id, id_message, result_msg.text))
+	exec_sql('INSERT OR REPLACE INTO rdvs VALUES (%d, %d, "%s")' % (update.message.chat_id, id_message, result_msg.text))
 	# on delete le message initial
 	bot.deleteMessage(chat_id=update.message.chat_id, message_id=update.message.message_id)
 	# on pin le message que l'on vient créer
@@ -53,11 +53,11 @@ def setUp(bot, update, args):
 	if len(args)<2:
 		return None
 	currency_name, limit = args[0], float(args[1])
-	exec_sql('INSERT INTO cryptos VALUES(%d, "%s", "%s", %d)' %(update.message.chat_id, "up", currency_name, limit))
+	exec_sql('INSERT INTO cryptos VALUES(%d, "%s", "%s", %.3g)' % (update.message.chat_id, "up", currency_name, limit))
 	bot.send_message(
 		chat_id=update.message.chat_id, 
 		text="""
-		Quand la valeur du %s dépassera %d, vous en serez averti.
+		Quand la valeur du %s dépassera %.3g, vous en serez averti.
 		""" 
 		% (currency_name, limit) 
 	)
@@ -68,24 +68,29 @@ def setDown(bot, update, args):
 		return None
 	currency_name, limit = args[0], float(args[1])
 	exec_sql(
-		'INSERT INTO cryptos VALUES(%d, "%s", "%s", %d)'
+		'INSERT INTO cryptos VALUES(%d, "%s", "%s", %.3g)'
 		% (update.message.chat_id, "down", currency_name, limit)
 	)
 	bot.send_message(
 		chat_id=update.message.chat_id, 
 		text="""
-		Quand la valeur du %s tombera sous %d, vous en serez averti.
+		Quand la valeur du %s tombera sous %.3g, vous en serez averti.
 		""" 
 		% (currency_name, limit) 
 	)
 
 def clearLimits(bot, update, args=None):
+	print(args)
 	if args:
 		# Delete the one crypto specified
 		currency_name = args[0]
 		exec_sql(
-			'DELETE FROM cryptos WHERE id_chat=%d AND currency=%s' 
+			'DELETE FROM cryptos WHERE id_chat=%d AND currency="%s"' 
 			% (update.message.chat_id, currency_name)
+		)
+		bot.send_message(
+			chat_id=update.message.chat_id,
+			text="Les limites sur %s ont été supprimées." % (currency_name,)
 		)
 	else:
 		# Delete all crypto being watched

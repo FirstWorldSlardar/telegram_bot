@@ -48,11 +48,11 @@ def returnSummary(typeLimit, currency_name, limit):
 		text = "est tombé sous"
 	else:
 		text = "a dépassé"
-	return """ {0} {1} votre limite ({2})\n 
-		Prix : {3} \n
+	return """ {0} {1} votre limite ({2:.3g})\n 
+		Prix : ${3:.3g} \n
 		Variation journalière: {4}%\n
-		Market Cap: {5}
-		""".format(s['name'], text, limit, s['price_usd'], s['percent_change_24h'], s['market_cap_usd'])
+		Market Cap: ${5}
+		""".format(s['name'], text, limit, float(s['price_usd']), s['percent_change_24h'], s['market_cap_usd'])
 
 
 def check_up(currency_name, limit):
