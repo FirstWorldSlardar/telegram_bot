@@ -1,6 +1,11 @@
 secret.key
 sqlite.db
 
+# Generated images
+*.png
+*.jpg
+*.jpeg
+
 # For python files
 __pycache__/
 *.py[cod]

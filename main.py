@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 from db_functions import get_from_sql, exec_sql
 # functions to request the lite database
+import cryptos
 
 ### COMMANDS FUNCTIONS ###
 def hello(bot, update):
@@ -178,6 +179,53 @@ def plus_un(bot, update):
 			AND 	id_message = %d
 		''' % (n_txt,chat_id,message_id)
 		exec_sql(requete)
+
+
+def setValues(bot, update, args=None):
+	if len(args)<2:
+		return None
+	currency, tokens = args
+	tokens = float(tokens)
+	requete = 'INSERT OR REPLACE INTO holdings VALUES(%d, "%s", %f)' % (update.message.chat_id, currency, tokens)
+	exec_sql(requete)
+	txt = "La détention de %f tokens de %s a été prise en compte." % (tokens, currency)
+	bot.send_message(
+			chat_id=update.message.chat_id,
+			text=txt
+		)
+
+def clearValues(bot, update, args=None):
+	if args:
+		# Delete the one crypto specified
+		currency = args[0]
+		requete = """
+			DELETE FROM holdings WHERE id_chat=%d  AND currency="%s"
+			"""	% (update.message.chat_id, currency)
+		exec_sql(requete)
+		txt = "Vos détentions de %s ont été réinitialisées." % currency
+		bot.send_message(
+			chat_id=update.message.chat_id,
+			text=txt
+		)
+	else:
+		# Delete all tokens holdings being watched
+		requete = "DELETE FROM holdings WHERE id_chat=%d" % update.message.chat_id
+		exec_sql(requete)
+		txt = "Vos détentions de tokens ont été réinitialisées."
+		bot.send_message(
+			chat_id=update.message.chat_id,
+			text=txt
+		)
+
+def seeValues(bot, update):
+	total, currencies, values = cryptos.generateHoldingsImg(update.message.chat_id)
+	pie_image= open('pie.png', 'rb')
+	txt ="Vos détentions de cryptos :\ntotal : %.7g" % total
+	for currency, value in zip(currencies, values):
+		txt += "\n%s : $%.7g" % (currency, value) 
+	bot.sendPhoto(chat_id=update.message.chat_id, photo=pie_image, caption=txt)
+	pie_image.close()
+
 ###
 
 
@@ -248,10 +296,9 @@ def main():
 	updater = Updater(token=secret_key)
 
 	# periodically check the cryptos
-	from cryptos import check_cryptos
 	jobQueue = updater.job_queue
 	job_check_cryptos = jobQueue.run_repeating(
-		check_cryptos,
+		cryptos.check_cryptos,
 		interval=15,
 		first=0
 	)
@@ -268,6 +315,9 @@ def main():
 	dispatcher.add_handler(CommandHandler("setDown", setDown, pass_args=True))
 	dispatcher.add_handler(CommandHandler("clearLimits", clearLimits, pass_args=True))
 	dispatcher.add_handler(CommandHandler("seeLimits", seeLimits, pass_args=True))
+	dispatcher.add_handler(CommandHandler("setValues", setValues, pass_args=True))
+	dispatcher.add_handler(CommandHandler("clearValues", clearValues, pass_args=True))
+	dispatcher.add_handler(CommandHandler("seeValues", seeValues))
 	dispatcher.add_handler(MessageHandler(Filters.text, plus_un))
 
 	# Ne fonctionne pas car le bot ne listen pas ses propres messages envoyés...

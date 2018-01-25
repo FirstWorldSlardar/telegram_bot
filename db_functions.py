@@ -9,7 +9,10 @@ def connect_db(func):
 			CREATE TABLE IF NOT EXISTS rdvs (id_chat int PRIMARY KEY, id_message int, txt text);
 		''')
 		cursor.execute('''
-			CREATE TABLE IF NOT EXISTS cryptos (id_chat, type text, currency text, value real);
+			CREATE TABLE IF NOT EXISTS cryptos (id_chat int, type text, currency text, value real);
+		''')
+		cursor.execute('''
+			CREATE TABLE IF NOT EXISTS holdings (id_chat int, currency text, tokens real, PRIMARY KEY (id_chat, currency));
 		''')
 		conn.commit()
 		kwargs['conn'] = conn

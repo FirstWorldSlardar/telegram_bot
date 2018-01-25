@@ -4,6 +4,7 @@ urllib3.disable_warnings()
 # data exchanged here
 import json
 from db_functions import get_from_sql, exec_sql
+import matplotlib.pyplot as plt
 
 
 def getCurrency(currency_name):
@@ -104,3 +105,29 @@ def check_cryptos(bot, job):
 			if check_up(currency, limit):
 				bot.send_message(chat_id=id_chat, text=summary)
 
+
+def generateHoldingsImg(id_chat):
+	holdings = get_from_sql("SELECT currency, tokens FROM holdings WHERE id_chat=%d" % id_chat)
+	labels = []
+	sizes = []
+	total_value, maximum, i_max, i = 0, 0, 0, 0
+	for currency_holding in holdings:
+		currency, tokens = currency_holding
+		tokens_value = tokens*float(getSummary(currency)["price_usd"])
+		if tokens_value >= maximum:
+			maximum = tokens_value
+			i_max = i 
+		labels.append(currency)
+		sizes.append(tokens_value)
+		total_value += tokens_value
+		i +=1
+	values = sizes
+	sizes = [value/total_value for value in sizes]
+	explode = [0 if j!=i_max else 0.1 for j in range(len(labels))]
+	
+	fig1, ax1 = plt.subplots(figsize=(2.5,1.5)) # (w, h) in inches
+	ax1.pie(sizes, explode=explode, labels=labels, autopct='%1.1f%%',
+	        shadow=True, startangle=90)
+	ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+	fig1.savefig('pie.png')
+	return total_value, labels, values
