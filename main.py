@@ -57,7 +57,7 @@ def setUp(bot, update, args):
 	bot.send_message(
 		chat_id=update.message.chat_id, 
 		text="""
-		Quand la valeur du %s dépassera %.3g, vous en serez averti.
+		Quand la valeur du %s dépassera $%.3g, vous en serez averti.
 		""" 
 		% (currency_name, limit) 
 	)
@@ -74,13 +74,12 @@ def setDown(bot, update, args):
 	bot.send_message(
 		chat_id=update.message.chat_id, 
 		text="""
-		Quand la valeur du %s tombera sous %.3g, vous en serez averti.
+		Quand la valeur du %s tombera sous $%.3g, vous en serez averti.
 		""" 
 		% (currency_name, limit) 
 	)
 
 def clearLimits(bot, update, args=None):
-	print(args)
 	if args:
 		# Delete the one crypto specified
 		currency_name = args[0]
@@ -99,6 +98,43 @@ def clearLimits(bot, update, args=None):
 			chat_id=update.message.chat_id,
 			text="Toutes vos limites ont été supprimées."
 		)
+
+def seeLimits(bot, update, args=None):
+	if args:
+		# Delete the one crypto specified
+		currency_name = args[0]
+		results = get_from_sql(
+			'SELECT type, value FROM cryptos WHERE id_chat=%d AND currency="%s"' 
+			% (update.message.chat_id, currency_name)
+		)
+		txt = "Les limites dans ce chat pour le %s sont :\n" % currency_name
+		for result in results:
+			type_limit, value = result
+			txt += """
+			%s : $%.3g \n
+			""" % (type_limit, value)
+		bot.send_message(
+			chat_id=update.message.chat_id,
+			text=txt
+		)
+	else:
+		# Delete all crypto being watched
+		results = get_from_sql(
+			'SELECT type, currency, value FROM cryptos WHERE id_chat=%d' 
+			% (update.message.chat_id,)
+		)
+		txt = "Les limites dans ce chat sont :\n"
+		for result in results:
+			type_limit, currency, value = result
+			txt += """
+			%s -> %s : $%.3g \n
+			""" % (currency, type_limit, value)
+		bot.send_message(
+			chat_id=update.message.chat_id,
+			text=txt
+		)
+
+
 
 def delete_pin_msg(bot, update):
 	bot.deleteMessage(chat_id=update.message.chat_id, message_id=update.message.message_id)
@@ -122,7 +158,8 @@ def plus_un(bot, update):
 		txt = get_from_sql(requete)[0][1]
 		# on édite le message
 		splitted_text = txt.split('\n')
-		n_pers = len(splitted_text)-1
+		n_pers = len(splitted_text)
+		# le nombre de personne qui ont fait '+1' (len(splitted)-1) +1 pour celui-ci.
 
 		n_txt = ":".join(splitted_text[0].split(':')[:-1]).strip(' ') +" : _%dpers._ " % (n_pers,) 
 		# First ligne, we make sure entering à ":" isn't a problem
@@ -215,7 +252,7 @@ def main():
 	jobQueue = updater.job_queue
 	job_check_cryptos = jobQueue.run_repeating(
 		check_cryptos,
-		interval=10,
+		interval=15,
 		first=0
 	)
 
@@ -230,6 +267,7 @@ def main():
 	dispatcher.add_handler(CommandHandler("setUp", setUp, pass_args=True))
 	dispatcher.add_handler(CommandHandler("setDown", setDown, pass_args=True))
 	dispatcher.add_handler(CommandHandler("clearLimits", clearLimits, pass_args=True))
+	dispatcher.add_handler(CommandHandler("seeLimits", seeLimits, pass_args=True))
 	dispatcher.add_handler(MessageHandler(Filters.text, plus_un))
 
 	# Ne fonctionne pas car le bot ne listen pas ses propres messages envoyés...

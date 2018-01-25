@@ -42,17 +42,33 @@ def getSummary(currency_name):
 	return dic
 
 
+def simplify_numbers(float_number_string_us):
+	split = float_number_string_us.split('.')
+	# [integer, floatting_value]
+	integer_list = [c for c in split[0]] # -> list
+	# we add ',' for every 3 digits
+	n_digits = len(integer_list)
+	for i in range(1,n_digits+1):
+		if i%3==0 and (n_digits-i) != 0:
+			integer_list.insert(n_digits-i, ',')
+
+	try :
+		return ''.join(integer_list)+'.'+split[1]
+	except IndexError as e:
+		return ''.join(integer_list)
+
+
 def returnSummary(typeLimit, currency_name, limit):
 	s = getSummary(currency_name)
 	if typeLimit=="down":
 		text = "est tombé sous"
 	else:
 		text = "a dépassé"
-	return """ {0} {1} votre limite ({2:.3g})\n 
+	return """ {0} {1} votre limite ${2:.3g}\n 
 		Prix : ${3:.3g} \n
 		Variation journalière: {4}%\n
 		Market Cap: ${5}
-		""".format(s['name'], text, limit, float(s['price_usd']), s['percent_change_24h'], s['market_cap_usd'])
+		""".format(s['name'], text, limit, float(s['price_usd']), s['percent_change_24h'], simplify_numbers(s['market_cap_usd']))
 
 
 def check_up(currency_name, limit):
@@ -81,9 +97,7 @@ def check_cryptos(bot, job):
 		if typeLimit=="down":
 			if check_down(currency, limit):
 				bot.send_message(chat_id=id_chat, text=summary)
-				job.interval *= 10
 		else:
 			if check_up(currency, limit):
 				bot.send_message(chat_id=id_chat, text=summary)
-				job.interval *= 10
 
