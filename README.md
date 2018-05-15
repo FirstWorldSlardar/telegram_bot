@@ -2,7 +2,7 @@ Telegram Bot using Python Wrapper
 
 **Installation :**
 
-**Conda useful command**
+
 -Install conda
 -Create a conda env from fil:
 $ conda env create -f env.yaml
@@ -14,6 +14,17 @@ $ ./bot.sh
 
 To update the env.yaml, just launch command:
 $ ./save_env.sh
+
+**Conda useful commands**
+
+Search package infos:
+$ conda search packagename
+-> may indicate the version and the build.
+
+Install a package in a env:
+$ source activate envname
+$ conda install packagename[=version][=build]
+
 
 **Bot Commands:**
 
