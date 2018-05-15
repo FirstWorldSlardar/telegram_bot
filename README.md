@@ -2,6 +2,10 @@ Telegram Bot using Python Wrapper
 
 **Installation :**
 
+conda env etc..
+# ! REWRITE !
+
+
 - Install the dependencies with a `pip install -r requirements.txt`
 - Create a secret.key file at the root with the secret Key of your bot in it
 - Create a file named "sqlite.db" at the root
