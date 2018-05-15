@@ -1,30 +1,34 @@
 import urllib3
-urllib3.disable_warnings() 
+urllib3.disable_warnings()
 # we just request the coinmarket API, so sensible
 # data exchanged here
 import json
 from db_functions import get_from_sql, exec_sql
-import matplotlib.pyplot as plt
 
+### special import, see: https://github.com/matplotlib/matplotlib/issues/9954
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+###
 
 def getCurrency(currency_name):
 	"""
-	returns:  
+	returns:
     {
-        "id": "siacoin", 
-        "name": "Siacoin", 
-        "symbol": "SC", 
-        "rank": "29", 
-        "price_usd": "0.0394902", 
-        "price_btc": "0.00000357", 
-        "24h_volume_usd": "34550600.0", 
-        "market_cap_usd": "1239840092.0", 
-        "available_supply": "31396146174.0", 
-        "total_supply": "31396146174.0", 
-        "max_supply": null, 
-        "percent_change_1h": "0.21", 
-        "percent_change_24h": "-3.88", 
-        "percent_change_7d": "-11.05", 
+        "id": "siacoin",
+        "name": "Siacoin",
+        "symbol": "SC",
+        "rank": "29",
+        "price_usd": "0.0394902",
+        "price_btc": "0.00000357",
+        "24h_volume_usd": "34550600.0",
+        "market_cap_usd": "1239840092.0",
+        "available_supply": "31396146174.0",
+        "total_supply": "31396146174.0",
+        "max_supply": null,
+        "percent_change_1h": "0.21",
+        "percent_change_24h": "-3.88",
+        "percent_change_7d": "-11.05",
         "last_updated": "1516815848"
     }
 	"""
@@ -68,7 +72,7 @@ def returnSummary(typeLimit, currency_name, limit):
 		text = "est tombé sous"
 	else:
 		text = "a dépassé"
-	return """ {0} {1} votre limite ${2:.3g}\n 
+	return """ {0} {1} votre limite ${2:.3g}\n
 		Prix : ${3:.3g} \n
 		Variation journalière: {4}%\n
 		Market Cap: ${5}
@@ -116,7 +120,7 @@ def generateHoldingsImg(id_chat):
 		tokens_value = tokens*float(getSummary(currency)["price_usd"])
 		if tokens_value >= maximum:
 			maximum = tokens_value
-			i_max = i 
+			i_max = i
 		labels.append(currency)
 		sizes.append(tokens_value)
 		total_value += tokens_value
@@ -124,7 +128,7 @@ def generateHoldingsImg(id_chat):
 	values = sizes
 	sizes = [value/total_value for value in sizes]
 	explode = [0 if j!=i_max else 0.1 for j in range(len(labels))]
-	
+
 	fig1, ax1 = plt.subplots(figsize=(2.5,1.5)) # (w, h) in inches
 	ax1.pie(sizes, explode=explode, labels=labels, autopct='%1.1f%%',
 	        shadow=True, startangle=90)

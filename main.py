@@ -26,205 +26,205 @@ def hello(bot, update):
     update.message.reply_text('Hello {}'.format(update.message.from_user.first_name))
 
 def start(bot, update):
-	bot.send_message(chat_id=update.message.chat_id, text="I'm a bot, please talk to me!")
+    bot.send_message(chat_id=update.message.chat_id, text="I'm a bot, please talk to me!")
 
 def voice(bot, update):
-	update.message.reply_text("Tu as la plus belle voix du monde ! 😄\nMais moi aussi, écoute :")
-	update.message.reply_voice(update.message.voice)
+    update.message.reply_text("Tu as la plus belle voix du monde ! 😄\nMais moi aussi, écoute :")
+    update.message.reply_voice(update.message.voice)
 
 def alea(bot, update, args):
-	#n = int(' '.join(args))
-	bot.send_message(chat_id=update.message.chat_id, text=randint(1,int(args[0])))
+    #n = int(' '.join(args))
+    bot.send_message(chat_id=update.message.chat_id, text=randint(1,int(args[0])))
 
 def rdv(bot, update, args):
-	txt = "{0} : _{1}pers._ \n@{2}".format(' '.join(args), "1", update.message.from_user.username)
-	# on crée un nouveau message
-	result_msg = bot.send_message(chat_id=update.message.chat_id, text=txt, parse_mode="Markdown")
-	# on récupère son id
-	id_message = result_msg.message_id
-	# on enregistre cet id dans la db
-	exec_sql('INSERT OR REPLACE INTO rdvs VALUES (%d, %d, "%s")' % (update.message.chat_id, id_message, result_msg.text))
-	# on delete le message initial
-	bot.deleteMessage(chat_id=update.message.chat_id, message_id=update.message.message_id)
-	# on pin le message que l'on vient créer
-	bot.pinChatMessage(chat_id=update.message.chat_id, message_id=id_message, disable_notification=True)
+    txt = "{0} : _{1}pers._ \n@{2}".format(' '.join(args), "1", update.message.from_user.username)
+    # on crée un nouveau message
+    result_msg = bot.send_message(chat_id=update.message.chat_id, text=txt, parse_mode="Markdown")
+    # on récupère son id
+    id_message = result_msg.message_id
+    # on enregistre cet id dans la db
+    exec_sql('INSERT OR REPLACE INTO rdvs VALUES (%d, %d, "%s")' % (update.message.chat_id, id_message, result_msg.text))
+    # on delete le message initial
+    bot.deleteMessage(chat_id=update.message.chat_id, message_id=update.message.message_id)
+    # on pin le message que l'on vient créer
+    bot.pinChatMessage(chat_id=update.message.chat_id, message_id=id_message, disable_notification=True)
 
 
 def setUp(bot, update, args):
-	if len(args)<2:
-		return None
-	currency_name, limit = args[0], float(args[1])
-	exec_sql('INSERT INTO cryptos VALUES(%d, "%s", "%s", %.3g)' % (update.message.chat_id, "up", currency_name, limit))
-	bot.send_message(
-		chat_id=update.message.chat_id, 
-		text="""
-		Quand la valeur du %s dépassera $%.3g, vous en serez averti.
-		""" 
-		% (currency_name, limit) 
-	)
+    if len(args)<2:
+        return None
+    currency_name, limit = args[0], float(args[1])
+    exec_sql('INSERT INTO cryptos VALUES(%d, "%s", "%s", %.3g)' % (update.message.chat_id, "up", currency_name, limit))
+    bot.send_message(
+        chat_id=update.message.chat_id,
+        text="""
+        Quand la valeur du %s dépassera $%.3g, vous en serez averti.
+        """
+        % (currency_name, limit)
+    )
 
 
 def setDown(bot, update, args):
-	if len(args)<2:
-		return None
-	currency_name, limit = args[0], float(args[1])
-	exec_sql(
-		'INSERT INTO cryptos VALUES(%d, "%s", "%s", %.3g)'
-		% (update.message.chat_id, "down", currency_name, limit)
-	)
-	bot.send_message(
-		chat_id=update.message.chat_id, 
-		text="""
-		Quand la valeur du %s tombera sous $%.3g, vous en serez averti.
-		""" 
-		% (currency_name, limit) 
-	)
+    if len(args)<2:
+        return None
+    currency_name, limit = args[0], float(args[1])
+    exec_sql(
+        'INSERT INTO cryptos VALUES(%d, "%s", "%s", %.3g)'
+        % (update.message.chat_id, "down", currency_name, limit)
+    )
+    bot.send_message(
+        chat_id=update.message.chat_id,
+        text="""
+        Quand la valeur du %s tombera sous $%.3g, vous en serez averti.
+        """
+        % (currency_name, limit)
+    )
 
 def clearLimits(bot, update, args=None):
-	if args:
-		# Delete the one crypto specified
-		currency_name = args[0]
-		exec_sql(
-			'DELETE FROM cryptos WHERE id_chat=%d AND currency="%s"' 
-			% (update.message.chat_id, currency_name)
-		)
-		bot.send_message(
-			chat_id=update.message.chat_id,
-			text="Les limites sur %s ont été supprimées." % (currency_name,)
-		)
-	else:
-		# Delete all crypto being watched
-		exec_sql('DELETE FROM cryptos WHERE id_chat=%d' % (update.message.chat_id,))
-		bot.send_message(
-			chat_id=update.message.chat_id,
-			text="Toutes vos limites ont été supprimées."
-		)
+    if args:
+        # Delete the one crypto specified
+        currency_name = args[0]
+        exec_sql(
+            'DELETE FROM cryptos WHERE id_chat=%d AND currency="%s"'
+            % (update.message.chat_id, currency_name)
+        )
+        bot.send_message(
+            chat_id=update.message.chat_id,
+            text="Les limites sur %s ont été supprimées." % (currency_name,)
+        )
+    else:
+        # Delete all crypto being watched
+        exec_sql('DELETE FROM cryptos WHERE id_chat=%d' % (update.message.chat_id,))
+        bot.send_message(
+            chat_id=update.message.chat_id,
+            text="Toutes vos limites ont été supprimées."
+        )
 
 def seeLimits(bot, update, args=None):
-	if args:
-		# Delete the one crypto specified
-		currency_name = args[0]
-		results = get_from_sql(
-			'SELECT type, value FROM cryptos WHERE id_chat=%d AND currency="%s"' 
-			% (update.message.chat_id, currency_name)
-		)
-		txt = "Les limites dans ce chat pour le %s sont :\n" % currency_name
-		for result in results:
-			type_limit, value = result
-			txt += """
-			%s : $%.3g \n
-			""" % (type_limit, value)
-		bot.send_message(
-			chat_id=update.message.chat_id,
-			text=txt
-		)
-	else:
-		# Delete all crypto being watched
-		results = get_from_sql(
-			'SELECT type, currency, value FROM cryptos WHERE id_chat=%d' 
-			% (update.message.chat_id,)
-		)
-		txt = "Les limites dans ce chat sont :\n"
-		for result in results:
-			type_limit, currency, value = result
-			txt += """
-			%s -> %s : $%.3g \n
-			""" % (currency, type_limit, value)
-		bot.send_message(
-			chat_id=update.message.chat_id,
-			text=txt
-		)
+    if args:
+        # Delete the one crypto specified
+        currency_name = args[0]
+        results = get_from_sql(
+            'SELECT type, value FROM cryptos WHERE id_chat=%d AND currency="%s"'
+            % (update.message.chat_id, currency_name)
+        )
+        txt = "Les limites dans ce chat pour le %s sont :\n" % currency_name
+        for result in results:
+            type_limit, value = result
+            txt += """
+            %s : $%.3g \n
+            """ % (type_limit, value)
+        bot.send_message(
+            chat_id=update.message.chat_id,
+            text=txt
+        )
+    else:
+        # Delete all crypto being watched
+        results = get_from_sql(
+            'SELECT type, currency, value FROM cryptos WHERE id_chat=%d'
+            % (update.message.chat_id,)
+        )
+        txt = "Les limites dans ce chat sont :\n"
+        for result in results:
+            type_limit, currency, value = result
+            txt += """
+            %s -> %s : $%.3g \n
+            """ % (currency, type_limit, value)
+        bot.send_message(
+            chat_id=update.message.chat_id,
+            text=txt
+        )
 
 
 
 def delete_pin_msg(bot, update):
-	bot.deleteMessage(chat_id=update.message.chat_id, message_id=update.message.message_id)
+    bot.deleteMessage(chat_id=update.message.chat_id, message_id=update.message.message_id)
 
 def unpin(bot, update):
-	bot.unpinChatMessage(chat_id=update.message.chat_id)
+    bot.unpinChatMessage(chat_id=update.message.chat_id)
 
 
 def plus_un(bot, update):
-	if update.message.text =="+1":
-		# on récupère le chat_id de la discussion en cours
-		chat_id = update.message.chat_id
-		requete = '''
-			SELECT 	id_message, txt
-			FROM    rdvs
-			WHERE   id_chat = %d
-			AND 	id_message = (SELECT MAX(id_message) FROM rdvs WHERE id_chat = %d)
-		''' % (chat_id,chat_id)
-		# on récupère dans la db le message_id pinned and le txt correspondant
-		message_id = get_from_sql(requete)[0][0]
-		txt = get_from_sql(requete)[0][1]
-		# on édite le message
-		splitted_text = txt.split('\n')
-		n_pers = len(splitted_text)
-		# le nombre de personne qui ont fait '+1' (len(splitted)-1) +1 pour celui-ci.
+    if update.message.text =="+1":
+        # on récupère le chat_id de la discussion en cours
+        chat_id = update.message.chat_id
+        requete = '''
+            SELECT     id_message, txt
+            FROM    rdvs
+            WHERE   id_chat = %d
+            AND     id_message = (SELECT MAX(id_message) FROM rdvs WHERE id_chat = %d)
+        ''' % (chat_id,chat_id)
+        # on récupère dans la db le message_id pinned and le txt correspondant
+        message_id = get_from_sql(requete)[0][0]
+        txt = get_from_sql(requete)[0][1]
+        # on édite le message
+        splitted_text = txt.split('\n')
+        n_pers = len(splitted_text)
+        # le nombre de personne qui ont fait '+1' (len(splitted)-1) +1 pour celui-ci.
 
-		n_txt = ":".join(splitted_text[0].split(':')[:-1]).strip(' ') +" : _%dpers._ " % (n_pers,) 
-		# First ligne, we make sure entering à ":" isn't a problem
-		# and that the format defined precedently is respected
-		for username in splitted_text[1:]:
-			n_txt += '\n' + username 
+        n_txt = ":".join(splitted_text[0].split(':')[:-1]).strip(' ') +" : _%dpers._ " % (n_pers,)
+        # First ligne, we make sure entering à ":" isn't a problem
+        # and that the format defined precedently is respected
+        for username in splitted_text[1:]:
+            n_txt += '\n' + username
 
-		n_txt += '\n@'+update.message.from_user.username
-		bot.editMessageText(chat_id=chat_id, message_id=message_id, text=n_txt, parse_mode="Markdown")
-		# on parse en Markdown pour pouvoir ajouter des italiques par exemple
-		# on actualise la db avec le txt édité
-		requete = '''
-			UPDATE 	rdvs
-			SET 	txt = "%s"
-			WHERE	id_chat = %d
-			AND 	id_message = %d
-		''' % (n_txt,chat_id,message_id)
-		exec_sql(requete)
+        n_txt += '\n@'+update.message.from_user.username
+        bot.editMessageText(chat_id=chat_id, message_id=message_id, text=n_txt, parse_mode="Markdown")
+        # on parse en Markdown pour pouvoir ajouter des italiques par exemple
+        # on actualise la db avec le txt édité
+        requete = '''
+            UPDATE     rdvs
+            SET     txt = "%s"
+            WHERE    id_chat = %d
+            AND     id_message = %d
+        ''' % (n_txt,chat_id,message_id)
+        exec_sql(requete)
 
 
 def setValues(bot, update, args=None):
-	if len(args)<2:
-		return None
-	currency, tokens = args
-	tokens = float(tokens)
-	requete = 'INSERT OR REPLACE INTO holdings VALUES(%d, "%s", %f)' % (update.message.chat_id, currency, tokens)
-	exec_sql(requete)
-	txt = "La détention de %f tokens de %s a été prise en compte." % (tokens, currency)
-	bot.send_message(
-			chat_id=update.message.chat_id,
-			text=txt
-		)
+    if len(args)<2:
+        return None
+    currency, tokens = args
+    tokens = float(tokens)
+    requete = 'INSERT OR REPLACE INTO holdings VALUES(%d, "%s", %f)' % (update.message.chat_id, currency, tokens)
+    exec_sql(requete)
+    txt = "La détention de %f tokens de %s a été prise en compte." % (tokens, currency)
+    bot.send_message(
+            chat_id=update.message.chat_id,
+            text=txt
+        )
 
 def clearValues(bot, update, args=None):
-	if args:
-		# Delete the one crypto specified
-		currency = args[0]
-		requete = """
-			DELETE FROM holdings WHERE id_chat=%d  AND currency="%s"
-			"""	% (update.message.chat_id, currency)
-		exec_sql(requete)
-		txt = "Vos détentions de %s ont été réinitialisées." % currency
-		bot.send_message(
-			chat_id=update.message.chat_id,
-			text=txt
-		)
-	else:
-		# Delete all tokens holdings being watched
-		requete = "DELETE FROM holdings WHERE id_chat=%d" % update.message.chat_id
-		exec_sql(requete)
-		txt = "Vos détentions de tokens ont été réinitialisées."
-		bot.send_message(
-			chat_id=update.message.chat_id,
-			text=txt
-		)
+    if args:
+        # Delete the one crypto specified
+        currency = args[0]
+        requete = """
+            DELETE FROM holdings WHERE id_chat=%d  AND currency="%s"
+            """    % (update.message.chat_id, currency)
+        exec_sql(requete)
+        txt = "Vos détentions de %s ont été réinitialisées." % currency
+        bot.send_message(
+            chat_id=update.message.chat_id,
+            text=txt
+        )
+    else:
+        # Delete all tokens holdings being watched
+        requete = "DELETE FROM holdings WHERE id_chat=%d" % update.message.chat_id
+        exec_sql(requete)
+        txt = "Vos détentions de tokens ont été réinitialisées."
+        bot.send_message(
+            chat_id=update.message.chat_id,
+            text=txt
+        )
 
 def seeValues(bot, update):
-	total, currencies, values = cryptos.generateHoldingsImg(update.message.chat_id)
-	pie_image= open('pie.png', 'rb')
-	txt ="Vos détentions de cryptos :\ntotal : %.7g" % total
-	for currency, value in zip(currencies, values):
-		txt += "\n%s : $%.7g" % (currency, value) 
-	bot.sendPhoto(chat_id=update.message.chat_id, photo=pie_image, caption=txt)
-	pie_image.close()
+    total, currencies, values = cryptos.generateHoldingsImg(update.message.chat_id)
+    pie_image= open('pie.png', 'rb')
+    txt ="Vos détentions de cryptos :\ntotal : %.7g" % total
+    for currency, value in zip(currencies, values):
+        txt += "\n%s : $%.7g" % (currency, value)
+    bot.sendPhoto(chat_id=update.message.chat_id, photo=pie_image, caption=txt)
+    pie_image.close()
 
 ###
 
@@ -232,7 +232,7 @@ def seeValues(bot, update):
 ### HELPER FUNCTIONS ###
 
 #def edit(bot, chat_id, message_id, txt):
-#	bot.editMessageText(chat_id=chat_id, message_id=message_id, text="Texte édité.")
+#    bot.editMessageText(chat_id=chat_id, message_id=message_id, text="Texte édité.")
 
 ###
 
@@ -250,7 +250,7 @@ def seeValues(bot, update):
 # def echo(bot, update):
 #     """Echo the user message."""
 #     update.message.reply_text(update.message.text)
-    
+
 
 def inlinequery(bot, update):
     """Handle the inline query."""
@@ -284,66 +284,67 @@ def error(bot, update, error):
 
 
 def setup():
-	print("Démarrage du bot")
+    print("Démarrage du bot")
 
 
 def main():
-	"""Run bot."""
+    """Run bot."""
 
-	# Get the bot secret key 
-	f_key = open("secret.key", "r")
-	secret_key = f_key.readline().strip(' ')
-	updater = Updater(token=secret_key)
+    # Get the bot secret key
+    f_key = open("secret.key", "r")
+    secret_key = f_key.readline().split('\n')[0].strip(' ')
+    secret_key
+    updater = Updater(token=secret_key)
 
-	# periodically check the cryptos
-	jobQueue = updater.job_queue
-	job_check_cryptos = jobQueue.run_repeating(
-		cryptos.check_cryptos,
-		interval=15,
-		first=0
-	)
-
-
-	dispatcher = updater.dispatcher
-	# on different commands - answer in Telegram
-	dispatcher.add_handler(CommandHandler("hello", hello))
-	dispatcher.add_handler(CommandHandler("start", start))
-	dispatcher.add_handler(CommandHandler("rdv", rdv, pass_args=True))
-	dispatcher.add_handler(CommandHandler("unpin", unpin))
-	dispatcher.add_handler(CommandHandler("alea", alea, pass_args=True))
-	dispatcher.add_handler(CommandHandler("setUp", setUp, pass_args=True))
-	dispatcher.add_handler(CommandHandler("setDown", setDown, pass_args=True))
-	dispatcher.add_handler(CommandHandler("clearLimits", clearLimits, pass_args=True))
-	dispatcher.add_handler(CommandHandler("seeLimits", seeLimits, pass_args=True))
-	dispatcher.add_handler(CommandHandler("setValues", setValues, pass_args=True))
-	dispatcher.add_handler(CommandHandler("clearValues", clearValues, pass_args=True))
-	dispatcher.add_handler(CommandHandler("seeValues", seeValues))
-	dispatcher.add_handler(MessageHandler(Filters.text, plus_un))
-
-	# Ne fonctionne pas car le bot ne listen pas ses propres messages envoyés...
-	# dispatcher.add_handler(MessageHandler(Filters.status_update.pinned_message & Filters.chat(username="@iloveraffa_bot"), delete_pin_msg))
-	
-	# on noncommand i.e message - echo the message on Telegram
-	# dispatcher.add_handler(MessageHandler(Filters.text, echo))
-	# dispatcher.add_handler(MessageHandler(Filters.voice, voice))
-
-	# dispatcher.add_handler(InlineQueryHandler(inlinequery))
-
-	
+    # periodically check the cryptos
+    jobQueue = updater.job_queue
+    job_check_cryptos = jobQueue.run_repeating(
+        cryptos.check_cryptos,
+        interval=15,
+        first=0
+    )
 
 
-	# log all errors
-	dispatcher.add_error_handler(error)
+    dispatcher = updater.dispatcher
+    # on different commands - answer in Telegram
+    dispatcher.add_handler(CommandHandler("hello", hello))
+    dispatcher.add_handler(CommandHandler("start", start))
+    dispatcher.add_handler(CommandHandler("rdv", rdv, pass_args=True))
+    dispatcher.add_handler(CommandHandler("unpin", unpin))
+    dispatcher.add_handler(CommandHandler("alea", alea, pass_args=True))
+    dispatcher.add_handler(CommandHandler("setUp", setUp, pass_args=True))
+    dispatcher.add_handler(CommandHandler("setDown", setDown, pass_args=True))
+    dispatcher.add_handler(CommandHandler("clearLimits", clearLimits, pass_args=True))
+    dispatcher.add_handler(CommandHandler("seeLimits", seeLimits, pass_args=True))
+    dispatcher.add_handler(CommandHandler("setValues", setValues, pass_args=True))
+    dispatcher.add_handler(CommandHandler("clearValues", clearValues, pass_args=True))
+    dispatcher.add_handler(CommandHandler("seeValues", seeValues))
+    dispatcher.add_handler(MessageHandler(Filters.text, plus_un))
 
-	# Start the Bot
-	updater.start_polling()
+    # Ne fonctionne pas car le bot ne listen pas ses propres messages envoyés...
+    # dispatcher.add_handler(MessageHandler(Filters.status_update.pinned_message & Filters.chat(username="@iloveraffa_bot"), delete_pin_msg))
 
-	# Block until you press Ctrl-C or the process receives SIGINT, SIGTERM or
-	# SIGABRT. This should be used most of the time, since start_polling() is
-	# non-blocking and will stop the bot gracefully.
-	updater.idle()
+    # on noncommand i.e message - echo the message on Telegram
+    # dispatcher.add_handler(MessageHandler(Filters.text, echo))
+    # dispatcher.add_handler(MessageHandler(Filters.voice, voice))
+
+    # dispatcher.add_handler(InlineQueryHandler(inlinequery))
+
+
+
+
+    # log all errors
+    dispatcher.add_error_handler(error)
+
+    # Start the Bot
+    updater.start_polling()
+
+    # Block until you press Ctrl-C or the process receives SIGINT, SIGTERM or
+    # SIGABRT. This should be used most of the time, since start_polling() is
+    # non-blocking and will stop the bot gracefully.
+    updater.idle()
 
 
 if __name__=="__main__":
-	setup()
-	main()
+    setup()
+    main()

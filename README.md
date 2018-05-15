@@ -2,14 +2,15 @@ Telegram Bot using Python Wrapper
 
 **Installation :**
 
-
--Install conda
--Create a conda env from fil:
-$ conda env create -f env.yaml
-- Create a secret.key file at the root with the secret Key of your bot in it
-- Create a file named "sqlite.db" at the root
-- Start your bot with:
-$ ./bot.sh
+1. Install conda
+2. Create a conda env from fil:
+3. conda env create -f env.yaml
+4. Create a secret.key file at the root with the secret Key of your bot in it
+5. Create a file named "sqlite.db" at the root
+6. Start your bot with:
+  ```bash
+  $ ./bot.sh
+  ```
 
 
 To update the env.yaml, just launch command:
