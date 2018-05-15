@@ -34,6 +34,15 @@ Install a package in a env:
 
 **Bot Commands:**
 
+*Everyday commands*
+- /alea $int : random int between 0 and $int
+- /rdv $place_and_date: if bot is admin (can delete message), delete the
+poster's message and create its own with $place_and_date and the poster
+username on it.
+- +1 : after a /rdv command, add the poster's username to the pinned message.
+- /hello: dumb command
+
+*Crypto monitoring*
 - /setUp $currency $valuelimit : the bot will tell you when the currency rise up the valuelimit
 - /setDown $currency $valuelimit: the bot will tell you when the currency falls down the valuelimit
 - /clearLimits $currency : without argument it clears all the previously set up limits
