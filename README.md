@@ -1,4 +1,4 @@
-## Telegram Bot using Python Wrapper ##
+## Telegram Bot using Python Wrapper (python-telegram-bot) ##
 
 **Installation :**
 
