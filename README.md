@@ -43,7 +43,7 @@ username on it.
 - /hello: dumb command
 
 *Crypto monitoring*
-- /setUp $currency $valuelimit : the bot will tell you when the currency rise up the valuelimit
+- /setUp $currency $valuelimit : the bot will tell you when the currency rises up the valuelimit
 - /setDown $currency $valuelimit: the bot will tell you when the currency falls down the valuelimit
 - /clearLimits $currency : without argument it clears all the previously set up limits
 - /seeLimits : show you all limits set
